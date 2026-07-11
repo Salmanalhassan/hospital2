@@ -78,7 +78,7 @@ app.post('/api/invoices', (req, res) => {
     const { invoice_number, customer_name, amount, status } = req.body;
     if (!invoice_number || !customer_name || !amount) return res.status(400).json({ success: false, message: 'requred!' });
 
-    db.query('INSERT INTO amiradata_db.invoices (invoice_number, customer_name, amount, status) VALUES (?, ?, ?, ?)', [invoice_number, customer_name, amount, status || 'Pending'], (err, result) => {
+    db.query('INSERT INTO invoices (invoice_number, customer_name, amount, status) VALUES (?, ?, ?, ?)', [invoice_number, customer_name, amount, status || 'Pending'], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: 'Fail to add invoice in database' });
         res.status(201).json({ success: true, message: 'succesfully added!', id: result.insertId });
     });
