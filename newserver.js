@@ -40,15 +40,28 @@ db.connect((err) => {
         specialty_or_ward VARCHAR(255)
     )`);
 
-    db.query(`CREATE TABLE IF NOT EXISTS patients (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255),
-    age INT,
-    gender VARCHAR(50),
-    complaint TEXT,
-    phone VARCHAR(50), 
-    doctor VARCHAR(255)
-)`);
+   // Goge tsohon teburin gaba daya don a samu damar yin sabo
+db.query("DROP TABLE IF EXISTS patients", (err) => {
+    if (err) console.error("Error dropping table:", err);
+    
+    // YANZU ƙirƙiri sabon teburin da duk columns da kake buƙata
+    db.query(`CREATE TABLE patients (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255),
+        age INT,
+        gender VARCHAR(50),
+        complaint TEXT,
+        phone VARCHAR(50),
+        doctor VARCHAR(255)
+    )`, (err) => {
+        if (err) console.error("Error creating table:", err);
+        else console.log("Table patients created successfully!");
+    });
+});
+
+
+
+
 });
 
 // --- API Endpoints ---
