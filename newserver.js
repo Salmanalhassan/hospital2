@@ -94,13 +94,25 @@ app.get('/api/patients', (req, res) => {
 });
 
 app.post('/api/register-patient', (req, res) => {
-    const { name, age, gender, complaint } = req.body;
-    db.query('INSERT INTO patients (name, age, gender, complaint) VALUES (?, ?, ?, ?)', 
-    [name, age, gender, complaint], (err, result) => {
-        if (err) return res.status(500).json({ success: false });
+    // Ƙara phone da doctor a nan
+    const { name, age, gender, complaint, phone, doctor } = req.body; 
+
+    // Ƙara columns ɗin a cikin SQL query ɗin ka
+    db.query('INSERT INTO patients (name, age, gender, complaint, phone, doctor) VALUES (?, ?, ?, ?, ?, ?)', 
+    [name, age, gender, complaint, phone, doctor], (err, result) => {
+        if (err) {
+            console.error("Database Error:", err);
+            return res.status(500).json({ success: false, error: err.message });
+        }
         res.json({ success: true });
     });
 });
+
+
+
+
+
+
 
 // --- AN ƘARA WANNAN: INVOICE ENDPOINTS ---
 app.get('/api/invoices', (req, res) => {
