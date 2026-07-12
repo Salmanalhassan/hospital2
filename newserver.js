@@ -46,19 +46,9 @@ db.connect((err) => {
     age INT,
     gender VARCHAR(50),
     complaint TEXT,
-    phone VARCHAR(50),
+    phone VARCHAR(50), 
     doctor VARCHAR(255)
-)`, (err) => {
-    if (err) console.error("Kuskure wajen ƙirƙirar tebur:", err);
-    else {
-        // Waɗannan layukan za su tabbatar da cewa ko da teburin ya daɗe, 
-        // an ƙara phone da doctor idan babu su.
-        db.query(`ALTER TABLE patients ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
-        db.query(`ALTER TABLE patients ADD COLUMN IF NOT EXISTS doctor VARCHAR(255)`);
-    }
-});
-
-
+)`);
 });
 
 // --- API Endpoints ---
