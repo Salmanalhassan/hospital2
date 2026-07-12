@@ -67,12 +67,22 @@ app.get('/api/invoices', (req, res) => {
     });
 });
 
-app.get('/api/staff', (req, res) => {
-    db.query('SELECT id, username, role, name, staffId, specialty_or_ward FROM staff ORDER BY id DESC', (err, results) => {
-        if (err) return res.status(500).json({ success: false });
-        res.json(results);
+app.post('/api/register-staff', (req, res) => {
+    const { username, password, role, name, staffId, specialty } = req.body;
+    db.query('INSERT INTO staff (username, password, role, name, staffId, specialty_or_ward) VALUES (?, ?, ?, ?, ?, ?)', 
+    [username, password, role, name, staffId, specialty], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        res.json({ success: true });
     });
 });
+
+
+
+
+
 
 app.delete('/api/staff/:id', (req, res) => {
     db.query('DELETE FROM staff WHERE id = ?', [req.params.id], (err, result) => {
