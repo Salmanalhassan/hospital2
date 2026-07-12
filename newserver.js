@@ -1,17 +1,13 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 
 const app = express();
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
-// Haɗin Database na MySQL
 const db = mysql.createConnection({
     host: process.env.MYSQLHOST || 'localhost',
     user: process.env.MYSQLUSER || 'root',
@@ -21,112 +17,68 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
-    if (err) {
-        console.error('fail to connect MySQL:', err);
-        return;
-    }
+    if (err) return console.error('fail to connect MySQL:', err);
     console.log('connect with MySQL Database succed! 🚀');
+
+    // Tabbatar da Teburorin suna nan
+    db.query(`CREATE TABLE IF NOT EXISTS invoices (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        invoice_number VARCHAR(255),
+        customer_name VARCHAR(255),
+        amount DECIMAL(10, 2),
+        status VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    db.query(`CREATE TABLE IF NOT EXISTS staff (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255),
+        password VARCHAR(255),
+        role VARCHAR(255),
+        name VARCHAR(255),
+        staffId VARCHAR(255),
+        specialty_or_ward VARCHAR(255)
+    )`);
 });
 
-// ==========================================
-// API ENDPOINTS
-// ==========================================
-
-// Login
+// API Endpoints
 app.post('/api/login', (req, res) => {
     const { username, password, role } = req.body;
-    if (!username || !password || !role) return res.status(400).json({ success: false, message: 'requred!' });
-
-    const query = 'SELECT * FROM staff WHERE username = ? AND password = ? AND role = ?';
-    db.query(query, [username, password, role], (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: 'error connect to server.' });
-        if (results.length > 0) res.json({ success: true, message: 'login was sucessfull!', user: results[0] });
-        else res.status(401).json({ success: false, message: 'Username, Password or Role incorrect!' });
+    db.query('SELECT * FROM staff WHERE username = ? AND password = ? AND role = ?', [username, password, role], (err, results) => {
+        if (err) return res.status(500).json({ success: false });
+        if (results.length > 0) res.json({ success: true, user: results[0] });
+        else res.status(401).json({ success: false });
     });
 });
 
-// Register Staff
-app.post('/api/register-staff', (req, res) => {
-    const { username, password, role, name, staffId, specialty_or_ward } = req.body;
-    if (!username || !password || !role || !name || !staffId) return res.status(400).json({ success: false, message: 'requred!' });
-
-    const query = `INSERT INTO staff (username, password, role, name, staffId, specialty_or_ward) VALUES (?, ?, ?, ?, ?, ?)`;
-    db.query(query, [username, password, role, name, staffId, specialty_or_ward || null], (err, result) => {
-        if (err) return res.status(500).json({ success: false, message: 'error connect to server.' });
-        res.status(201).json({ success: true, message: 'staff added sucessfull!' });
-    });
-});
-
-// Patients
-app.get('/api/patients', (req, res) => {
-    db.query('SELECT * FROM patients', (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: 'error to manage imformation.' });
-        res.json(results);
-    });
-});
-
-app.post('/api/patients', (req, res) => {
-    const { name, age, gender, condition } = req.body;
-    db.query('INSERT INTO patients (name, age, gender, `condition`) VALUES (?, ?, ?, ?)', [name, age, gender, condition], (err, result) => {
-        if (err) return res.status(500).json({ success: false, message: 'fail to add pattien.' });
-        res.status(201).json({ success: true, id: result.insertId, message: 'pattien added succesfull!' });
-    });
-});
-// Nemi wannan layin a cikin newserver.js ɗinka
 app.post('/api/invoices', (req, res) => {
-    
-    // --> KA SA WANNAN LAYIN ANAN:
-    console.log("Invoice request received:", req.body); 
-    // <---------------------------------------------
-
     const { invoice_number, customer_name, amount, status } = req.body;
-    if (!invoice_number || !customer_name || !amount) {
-        return res.status(400).json({ success: false, message: 'Missing fields' });
-    }
-
     db.query('INSERT INTO invoices (invoice_number, customer_name, amount, status) VALUES (?, ?, ?, ?)', 
     [invoice_number, customer_name, amount, status], (err, result) => {
-        if (err) {
-            console.error('Error inserting invoice:', err); // Wannan ma yana da kyau ya kasance anan
-            return res.status(500).json({ success: false, message: 'Fail to add invoice in database' });
-        }
-        res.status(201).json({ success: true, message: 'succesfully added!', id: result.insertId });
+        if (err) return res.status(500).json({ success: false });
+        res.status(201).json({ success: true, id: result.insertId });
     });
 });
-
-
-
-
-
 
 app.get('/api/invoices', (req, res) => {
     db.query('SELECT * FROM invoices ORDER BY created_at DESC', (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: 'fail to generate invoices.' });
+        if (err) return res.status(500).json({ success: false });
         res.json(results);
     });
 });
 
-// Staff Management
 app.get('/api/staff', (req, res) => {
     db.query('SELECT id, username, role, name, staffId, specialty_or_ward FROM staff ORDER BY id DESC', (err, results) => {
-        if (err) return res.status(500).json({ success: false, message: 'fail to add staff.' });
+        if (err) return res.status(500).json({ success: false });
         res.json(results);
     });
 });
 
 app.delete('/api/staff/:id', (req, res) => {
     db.query('DELETE FROM staff WHERE id = ?', [req.params.id], (err, result) => {
-        if (err) return res.status(500).json({ success: false, message: 'fail to delete staff.' });
-        res.json({ success: true, message: 'An goge ma’aikaci cikin nasara!' });
+        if (err) return res.status(500).json({ success: false });
+        res.json({ success: true });
     });
 });
 
-// Test Route (Hada duka guri guda)
-app.get('/', (req, res) => {
-  res.send('new backend MediCare works correctly!');
-});
-
-// Tayar da Server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend work at port ${PORT}`);
-});
+app.listen(PORT, '0.0.0.0', () => console.log(`Backend work at port ${PORT}`));
