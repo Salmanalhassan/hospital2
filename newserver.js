@@ -72,20 +72,35 @@ app.post('/api/patients', (req, res) => {
         res.status(201).json({ success: true, id: result.insertId, message: 'pattien added succesfull!' });
     });
 });
-
-// Invoices
+// Nemi wannan layin a cikin newserver.js ɗinka
 app.post('/api/invoices', (req, res) => {
-    const { invoice_number, customer_name, amount, status } = req.body;
-    if (!invoice_number || !customer_name || !amount) return res.status(400).json({ success: false, message: 'requred!' });
+    
+    // --> KA SA WANNAN LAYIN ANAN:
+    console.log("Invoice request received:", req.body); 
+    // <---------------------------------------------
 
-    db.query('INSERT INTO invoices (invoice_number, customer_name, amount, status) VALUES (?, ?, ?, ?)', [invoice_number, customer_name, amount, status || 'Pending'], (err, result) => {
-        if (err) return res.status(500).json({ success: false, message: 'Fail to add invoice in database' });
+    const { invoice_number, customer_name, amount, status } = req.body;
+    if (!invoice_number || !customer_name || !amount) {
+        return res.status(400).json({ success: false, message: 'Missing fields' });
+    }
+
+    db.query('INSERT INTO invoices (invoice_number, customer_name, amount, status) VALUES (?, ?, ?, ?)', 
+    [invoice_number, customer_name, amount, status], (err, result) => {
+        if (err) {
+            console.error('Error inserting invoice:', err); // Wannan ma yana da kyau ya kasance anan
+            return res.status(500).json({ success: false, message: 'Fail to add invoice in database' });
+        }
         res.status(201).json({ success: true, message: 'succesfully added!', id: result.insertId });
     });
 });
 
+
+
+
+
+
 app.get('/api/invoices', (req, res) => {
-    db.query('SELECT * FROM amiradata_db.invoices ORDER BY created_at DESC', (err, results) => {
+    db.query('SELECT * FROM invoices ORDER BY created_at DESC', (err, results) => {
         if (err) return res.status(500).json({ success: false, message: 'fail to generate invoices.' });
         res.json(results);
     });
